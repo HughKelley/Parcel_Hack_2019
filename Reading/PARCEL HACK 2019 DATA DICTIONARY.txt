@@ -1,0 +1,31 @@
+PARCEL HACK 2019 DATA DICTIONARY
+2 csvs have been provided for you. The first csv, "parcelhack_jobs.csv", represents the data for roughly 9000 a to b deliveries, which we call "jobs". The second csv, "parcelhack_courier_pings.csv", represents the "pings" (or locations) that were sent from the courier's mobile phone whilst they were performing the job. Please note the second dataset is too large to be opened in Excel.
+Both csvs makes use of Uber's H3 library, which divides the surface of the earth into recursive hexagons. You can watch a video about tiling the earth with hexagons here: https://www.youtube.com/watch?v=ay2uwtRO3QE&t=18s.
+
+About parcelhack_jobs.csv
+
+JOB_ID                  unique id for an a to b job
+COURIER_ID              unique id of the courier
+VEHICLETYPE             vehicle type of the courier
+CREATED AT              date the job was created
+COLLECTION EARLIEST     earliest time the courier should reach the collection point
+COLLECTION LATEST       latest time the courier should reach the collection point
+COLLECTED AT            time the package was actually collected
+DELIVERY EARLIEST       earliest time the courier should reach the delivery point
+DELIVERY LATEST         latest time the courier should reach the delivery point
+DELIVERED AT            time the package was actually delivered
+COLLECTION HEXAGON      the h3 hexagon of the collection point
+DELIVERY HEXAGON        the h3 hexagon of the delivery point
+COLLECTION LATITUDE     the latitude of the collection point
+COLLECTION LONGITUDE    the longitude of the collection point
+DELIVERY LATITUDE       the latitude of the delivery point
+DELIVERY LONGITUDE      the longitude of the delivery point
+
+About parcelhack_courier_pings.csv
+
+The courier ping data includes all the original fields in the job data, so you know which job each ping is related to. In addition it includes the following fields:
+
+PING TIMESTAMP      time the location ping was sent from the courier's mobile phone
+PING LATITUDE       the latitude of the courier at the time the ping was sent
+PING LONGITUDE      the longitude of the courier at the time the ping was sent
+PING HEXAGON        the h3 hexagon of the ping
