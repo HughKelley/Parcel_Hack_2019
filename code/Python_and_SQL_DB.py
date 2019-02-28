@@ -32,7 +32,7 @@ from sqlalchemy import *
 
 # create the connection string to the MySQL database
 # replace USERNAME and PASSWORD with your own credentials 
-engine = create_engine('mysql+pymysql://ucfnhke:baleyakuli@dev.spatialdatacapture.org:3306/ucfnhke')
+engine = create_engine('mysql+pymysql://USERNAME:PASSWORD@dev.spatialdatacapture.org:3306/USERNAME')
 
 # make the connection to the database
 conn = engine.raw_connection()
