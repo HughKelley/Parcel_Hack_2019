@@ -13,21 +13,25 @@ source('~/CS/Parcel_Hack_2019/Code/distance.r', echo=TRUE)
 
 require(RMySQL)
 
-mydb = dbConnect(MySQL(), user='ucfnhke', password='baleyakuli', dbname='ucfnhke', host='dev.spatialdatacapture.org')
+mydb <-  dbConnect(MySQL(), user='ucfnhke', password='baleyakuli', dbname='ucfnhke', host='dev.spatialdatacapture.org')
 
 # dbSendQuery builds the query string
 # fetch executes the query
 # dbClearResults() frees memory resources associated with the query, not clear that its diferent from rm()
 
-names_query_4 = dbGetQuery(mydb, paste("SHOW TABLES;"))
+names_query_4 <- dbGetQuery(mydb, paste("SHOW TABLES;"))
 print(names_query_4)
+
+# sample <- dbGetQuery(mydb, "SELECT * FROM ph_pings LIMIT 10")
 
 table_headers <- dbGetQuery(mydb, paste("SHOW columns FROM ph_data;"))
 print(table_headers)
 
-# jobs_data <- dbSendQuery(mydb, paste("SELECT JOB_ID, COLLECTION_LATITUDE, COLLECTION_LONGITUDE, DELIVERY_LATITUDE, DELIVERY_LONGITUDE FROM ph_data"))
-jobs_data <- dbSendQuery(mydb, paste("SELECT JOB_ID, COLLECTION_LATITUDE, COLLECTION_LONGITUDE, DELIVERY_LATITUDE, DELIVERY_LONGITUDE FROM PH_Jobs"))
-data <- fetch(jobs_data, n = 1000)
+jobs_data <- dbSendQuery(mydb, paste("SELECT JOB_ID, COLLECTION_LATITUDE, COLLECTION_LONGITUDE, DELIVERY_LATITUDE, DELIVERY_LONGITUDE FROM ph_data"))
+# jobs_data <- dbSendQuery(mydb, paste("SELECT JOB_ID, COLLECTION_LATITUDE, COLLECTION_LONGITUDE, DELIVERY_LATITUDE, DELIVERY_LONGITUDE FROM PH_Jobs"))
+data <- fetch(jobs_data, n = 50)
+
+
 
 dbClearResult(jobs_data)
 
@@ -53,6 +57,7 @@ dbClearResult(jobs_data)
 
 # Done with SP....
 require(rgdal)
+require(sp)
 
 # convert collection coords
 coordinates(data) <- c('COLLECTION_LONGITUDE', 'COLLECTION_LATITUDE')
