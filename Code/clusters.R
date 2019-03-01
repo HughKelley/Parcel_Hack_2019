@@ -111,6 +111,9 @@ names(data_2)[names(data_2) == 'data.DELIVERY_EASTING'] <- 'EASTING'
 data_2$type <- rep("destination",nrow(data_2))
 data <- rbind(data_1, data_2)
 
+###################################################################################
+
+
 
 
 
