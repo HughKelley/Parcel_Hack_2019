@@ -15,6 +15,7 @@ estimate_distance <- function (start_points,end_points)  {
 cluster_distance <- function(sf) {
   
   require(sf)
+  require(dplyr)
   clusters <- unique(sf$cluster_id)
   distance <- rep(NA, length(clusters))     # create list for distances
   
