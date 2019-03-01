@@ -1,9 +1,15 @@
 ###################################################
 #Clusters for batching pickups and drop offs
 ###################################################
+
+# source Terry's functions
+
+source('~/CS/Parcel_Hack_2019/Code/distance.r', echo=TRUE)
+
+
 # Get data from DB
 
-install.packages("RMySQL")
+# install.packages("RMySQL")
 
 require(RMySQL)
 
@@ -16,27 +22,30 @@ mydb = dbConnect(MySQL(), user='ucfnhke', password='baleyakuli', dbname='ucfnhke
 names_query_4 = dbGetQuery(mydb, paste("SHOW TABLES;"))
 print(names_query_4)
 
-table_headers <- dbGetQuery(mydb, paste("SHOW columns FROM PH_Jobs;"))
+table_headers <- dbGetQuery(mydb, paste("SHOW columns FROM ph_data;"))
 print(table_headers)
 
+# jobs_data <- dbSendQuery(mydb, paste("SELECT JOB_ID, COLLECTION_LATITUDE, COLLECTION_LONGITUDE, DELIVERY_LATITUDE, DELIVERY_LONGITUDE FROM ph_data"))
 jobs_data <- dbSendQuery(mydb, paste("SELECT JOB_ID, COLLECTION_LATITUDE, COLLECTION_LONGITUDE, DELIVERY_LATITUDE, DELIVERY_LONGITUDE FROM PH_Jobs"))
 data <- fetch(jobs_data, n = 1000)
 
-test_query = dbSendQuery(mydb, paste("SELECT * FROM cities"))
-results = dbFetch(test_query, n=10)
-dbClearResult(test_query)
+dbClearResult(jobs_data)
+
+# test_query = dbSendQuery(mydb, paste("SELECT * FROM cities"))
+# results = dbFetch(test_query, n=10)
+# dbClearResult(test_query)
 
 # or?
-test_query_1 = dbGetQuery(mydb, paste("SELECT * FROM cities"))
-rm(test_query_1)
+# test_query_1 = dbGetQuery(mydb, paste("SELECT * FROM cities"))
+# rm(test_query_1)
 
 # info about database
 
 
-results_4 = dbFetch(names_query_4, n = -1)
-dbClearResult(names_query_4)
+# results_4 = dbFetch(names_query_4, n = -1)
+# dbClearResult(names_query_4)
 
-names_query_5 = dbGetQuery(mydb, paste("Select * FROM cities"))
+# names_query_5 = dbGetQuery(mydb, paste("Select * FROM cities"))
 
 ######################################################################
 
@@ -88,7 +97,7 @@ fit <- hclust(distance_matrix, method="ward.D2")
 
 # plot(fit)
 
-groups <- cutree(fit, k =5, h = NULL)         # k is number of clusters, h is radius of clusters
+groups <- cutree(fit, k =17, h = NULL)         # k is number of clusters, h is radius of clusters
 
 # rect.hclust(fit, k = 5, border = "red")
 
@@ -96,7 +105,7 @@ groups <- cutree(fit, k =5, h = NULL)         # k is number of clusters, h is ra
 
 # Add Cluster ID attribute to dataframe
 
-require(tidyverse)
+# require(tidyverse)
 
 data$Group_ID <- groups
 
@@ -111,11 +120,13 @@ names(data_2)[names(data_2) == 'data.DELIVERY_EASTING'] <- 'EASTING'
 data_2$type <- rep("destination",nrow(data_2))
 data <- rbind(data_1, data_2)
 
+names(data)[names(data) == 'data.Group_ID'] <- 'cluster_id'
+
 ###################################################################################
+require(sf)
+data <- st_as_sf(data, coords = c("NORTHING", "EASTING"), crs = "+init=epsg:27700")
 
-
-
-
+distances <-  cluster_distance(data)
 
 
 
