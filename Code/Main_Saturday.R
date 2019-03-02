@@ -7,6 +7,9 @@
 source('~/CS/Parcel_Hack_2019/Code/distance.r', echo=TRUE)
 
 
+arthurs_data <- read.csv('Clustered_Data_Set.csv')
+
+
 # Get data from DB
 
 # install.packages("RMySQL")
@@ -98,26 +101,97 @@ names(data)[names(data) == 'DELIVERY_LATITUDE'] <- 'DELIVERY_EASTING'
 
 
 
+#### segmentation
+
+euclid_distance <- function (a_northing,a_easting,b_northing,b_easting){
+  northing <- abs(a_northing-b_northing)
+  easting <- abs(a_easting-b_easting)
+  return(sqrt(northing^2 +easting^2))
+}
+
+
+nearest <- function(a_northing,a_easting,b_northing_list,b_easting_list){
+  d <- 1e99
+  g <- NA
+  for (i in 1:length(b_northing_list)){
+    e <- euclid_distance(a_northing,a_easting,b_northing_list[i],b_easting_list[i])
+    if (e < d){
+      d <- e
+      g <- i
+    }
+  }
+  return(c(b_northing_list[g],b_easting_list[g]))
+}
+
+segment <- function(collection_northing,collection_easting,delivery_northing,delivery_easting,hub_northing_list,hub_easting_list){
+  seg1 <- nearest(collection_northing,collection_easting,c(delivery_northing,hub_northing_list),c(delivery_easting,hub_easting_list))
+  seg3 <- nearest(delivery_northing,delivery_easting,c(seg1[1],hub_northing_list),c(seg1[2],hub_easting_list))
+  return(c(seg1,seg3))
+}
+
+# hub <- data.frame(rbind(cbind(NORTHING=530000,EASTING=182000),cbind(NORTHING=520000,EASTING=181000))  )
+
+hub <- arthurs_data
+
+data2 <- cbind(data,SEGMENT_ID=NA)
+for (i in 1:length(data$JOB_ID)){
+  t <- data2[i,]
+  s <- segment(t$COLLECTION_NORTHING,t$COLLECTION_EASTING,t$DELIVERY_NORTHING,t$DELIVERY_EASTING,hub$NORTHING,hub$EASTING)
+  r1 <- t
+  r1$DELIVERY_NORTHING <- s[1]
+  r1$DELIVERY_EASTING <- s[2]
+  r1$SEGMENT_ID=1
+  r2 <- t
+  r2$COLLECTION_NORTHING <- s[1]
+  r2$COLLECTION_EASTING <- s[2]
+  r2$DELIVERY_NORTHING <- s[3]
+  r2$DELIVERY_EASTING <- s[4]
+  r2$SEGMENT_ID=2
+  r3 <- t
+  r3$COLLECTION_NORTHING <- s[3]
+  r3$COLLECTION_EASTING <- s[4]
+  r3$SEGMENT_ID=3
+  r <- rbind(r1,r2,r3)
+  data2 <- rbind(data2,r)  
+}
+
+
+data_frame_1 <- dplyr::filter(data2, SEGMENT_ID == 1)
+data_frame_2<- dplyr::filter(data2, SEGMENT_ID == 2)
+data_frame_3 <- dplyr::filter(data2, SEGMENT_ID == 3)
+
+dataframe_1_1 <-  data_frame_1[-c(1,6)]
+dataframe_2_1 <-  data_frame_2[-c(1,6)]
+dataframe_3_1 <-  data_frame_3[-c(1,6)]
+
+
+dist_mat_3 <- dist(dataframe_3_1, method = "euclidean")
+
+fit <- hclust(dist_mat_1, method="ward.D2")
+
+groups_3 <-  cutree(fit, k = 1800, h = NULL)  
+
+
 ######################################################################
 # Do Clustering analysis
 
-require(stats)
-
-# don't need to scale because BNG grid is square
-# my_data = scale(results_4)
-
-data_subset <- data.frame(data$COLLECTION_NORTHING,data$COLLECTION_EASTING, data$DELIVERY_NORTHING, data$DELIVERY_EASTING)
-
-distance_matrix <- dist(data_subset, method = "euclidean")
-
-fit <- hclust(distance_matrix, method="ward.D2")
-
-# plot(fit)
+# require(stats)
+# 
+# # don't need to scale because BNG grid is square
+# # my_data = scale(results_4)
+# 
+# data_subset <- data.frame(data$COLLECTION_NORTHING,data$COLLECTION_EASTING, data$DELIVERY_NORTHING, data$DELIVERY_EASTING)
+# 
+# distance_matrix <- dist(data_subset, method = "euclidean")
+# 
+# fit <- hclust(distance_matrix, method="ward.D2")
+# 
+# # plot(fit)
 
 ###########################################################################
 ###########################################################################
 # Change this line to get different number of clusters
-groups <- cutree(fit, k = 400, h = NULL)         # k is number of clusters, h is radius of clusters
+# groups <- cutree(fit, k = 400, h = NULL)         # k is number of clusters, h is radius of clusters
 
 # rect.hclust(fit, k = 5, border = "red")
 
@@ -127,21 +201,22 @@ groups <- cutree(fit, k = 400, h = NULL)         # k is number of clusters, h is
 
 # require(tidyverse)
 
-data <- data_holder
-data$Group_ID <- groups
+# data <- data_holder
+data_frame_3$Group_ID <- groups_2
 
-data_1 <- data.frame(data$JOB_ID, data$COLLECTION_NORTHING, data$COLLECTION_EASTING, data$Group_ID)
-data_2 <- data.frame(data$JOB_ID,data$DELIVERY_NORTHING,data$DELIVERY_EASTING,data$Group_ID)
 
-names(data_1)[names(data_1) == 'data.COLLECTION_NORTHING'] <- 'NORTHING'
-names(data_1)[names(data_1) == 'data.COLLECTION_EASTING'] <- 'EASTING'
+data_1 <- data.frame(data_frame_3$JOB_ID, data_frame_3$COLLECTION_NORTHING, data_frame_3$COLLECTION_EASTING, data_frame_3$Group_ID)
+data_2 <- data.frame(data_frame_3$JOB_ID,data_frame_3$DELIVERY_NORTHING,data_frame_3$DELIVERY_EASTING,data_frame_3$Group_ID)
+
+names(data_1)[names(data_1) == 'data_frame_3.COLLECTION_NORTHING'] <- 'NORTHING'
+names(data_1)[names(data_1) == 'data_frame_3.COLLECTION_EASTING'] <- 'EASTING'
 data_1$type <- rep("origin",nrow(data_1))
-names(data_2)[names(data_2) == 'data.DELIVERY_NORTHING'] <- 'NORTHING'
-names(data_2)[names(data_2) == 'data.DELIVERY_EASTING'] <- 'EASTING'
+names(data_2)[names(data_2) == 'data_frame_3.DELIVERY_NORTHING'] <- 'NORTHING'
+names(data_2)[names(data_2) == 'data_frame_3.DELIVERY_EASTING'] <- 'EASTING'
 data_2$type <- rep("destination",nrow(data_2))
 data <- rbind(data_1, data_2)
 
-names(data)[names(data) == 'data.Group_ID'] <- 'cluster_id'
+names(data)[names(data) == 'data_frame_3.Group_ID'] <- 'cluster_id'
 
 # write.csv(data, file = "Clustered_Data_Set.csv")
 
@@ -149,7 +224,7 @@ names(data)[names(data) == 'data.Group_ID'] <- 'cluster_id'
 require(sf)
 data <- st_as_sf(data, coords = c("NORTHING", "EASTING"), crs = "+init=epsg:27700")
 
-distances_400 <-  cluster_distance(data)
+distances_3 <-  cluster_distance(data)
 
 count <- c(10,20,50,75,100,125,150,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100)
 dist <- c(mean(distances),mean(distances_1),mean(distances_2),mean(distances_3),mean(distances_4),mean(distances_5),
@@ -159,14 +234,14 @@ dist <- c(mean(distances),mean(distances_1),mean(distances_2),mean(distances_3),
           mean(distances_24),mean(distances_25))
 
 count <- c(600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100)
-dist <- c(mean(distances_10),mean(distances_11),
-          mean(distances_12),mean(distances_13),mean(distances_14),mean(distances_15),mean(distances_16),mean(distances_17),
-          mean(distances_18),mean(distances_19),mean(distances_20),mean(distances_21),mean(distances_22),mean(distances_23),
-          mean(distances_24),mean(distances_25))
+dist <- c(sum(distances_10),sum(distances_11),
+          sum(distances_12),sum(distances_13),sum(distances_14),sum(distances_15),sum(distances_16),sum(distances_17),
+          sum(distances_18),sum(distances_19),sum(distances_20),sum(distances_21),sum(distances_22),sum(distances_23),
+          sum(distances_24),sum(distances_25))
 
 frame <- data.frame(count, dist)
 frame$distance_km <- frame$dist/1000
 frame_subset <- data.frame(frame$count, frame$distance_km)
 names(frame_subset)[names(frame_subset) == 'frame.count'] <- 'Number of Couriers'
-names(frame_subset)[names(frame_subset) == 'frame.distance_km'] <- 'Average Straightline Distance Travelled'
+names(frame_subset)[names(frame_subset) == 'frame.distance_km'] <- 'TotalStraightline Distance Travelled'
 plot(frame_subset)

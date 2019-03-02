@@ -27,9 +27,9 @@ print(names_query_4)
 table_headers <- dbGetQuery(mydb, paste("SHOW columns FROM ph_data;"))
 print(table_headers)
 
-jobs_data <- dbSendQuery(mydb, paste("SELECT JOB_ID, COLLECTION_LATITUDE, COLLECTION_LONGITUDE, DELIVERY_LATITUDE, DELIVERY_LONGITUDE FROM PH_Jobs"))
+jobs_data <- dbSendQuery(mydb, paste("SELECT JOB_ID, COLLECTION_LATITUDE, COLLECTION_LONGITUDE, DELIVERY_LATITUDE, DELIVERY_LONGITUDE FROM ph_data"))
 # jobs_data <- dbSendQuery(mydb, paste("SELECT JOB_ID, COLLECTION_LATITUDE, COLLECTION_LONGITUDE, DELIVERY_LATITUDE, DELIVERY_LONGITUDE FROM PH_Jobs"))
-data <- fetch(jobs_data, n = -1)
+data <- fetch(jobs_data, n = 50)
 
 
 
@@ -114,10 +114,7 @@ fit <- hclust(distance_matrix, method="ward.D2")
 
 # plot(fit)
 
-###########################################################################
-###########################################################################
-# Change this line to get different number of clusters
-groups <- cutree(fit, k = 400, h = NULL)         # k is number of clusters, h is radius of clusters
+groups <- cutree(fit, k =17, h = NULL)         # k is number of clusters, h is radius of clusters
 
 # rect.hclust(fit, k = 5, border = "red")
 
@@ -127,7 +124,6 @@ groups <- cutree(fit, k = 400, h = NULL)         # k is number of clusters, h is
 
 # require(tidyverse)
 
-data <- data_holder
 data$Group_ID <- groups
 
 data_1 <- data.frame(data$JOB_ID, data$COLLECTION_NORTHING, data$COLLECTION_EASTING, data$Group_ID)
@@ -143,30 +139,12 @@ data <- rbind(data_1, data_2)
 
 names(data)[names(data) == 'data.Group_ID'] <- 'cluster_id'
 
-# write.csv(data, file = "Clustered_Data_Set.csv")
-
 ###################################################################################
 require(sf)
 data <- st_as_sf(data, coords = c("NORTHING", "EASTING"), crs = "+init=epsg:27700")
 
-distances_400 <-  cluster_distance(data)
+distances <-  cluster_distance(data)
 
-count <- c(10,20,50,75,100,125,150,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100)
-dist <- c(mean(distances),mean(distances_1),mean(distances_2),mean(distances_3),mean(distances_4),mean(distances_5),
-          mean(distances_6),mean(distances_7),mean(distances_8),mean(distances_400),mean(distances_9),mean(distances_10),mean(distances_11),
-          mean(distances_12),mean(distances_13),mean(distances_14),mean(distances_15),mean(distances_16),mean(distances_17),
-          mean(distances_18),mean(distances_19),mean(distances_20),mean(distances_21),mean(distances_22),mean(distances_23),
-          mean(distances_24),mean(distances_25))
 
-count <- c(600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100)
-dist <- c(mean(distances_10),mean(distances_11),
-          mean(distances_12),mean(distances_13),mean(distances_14),mean(distances_15),mean(distances_16),mean(distances_17),
-          mean(distances_18),mean(distances_19),mean(distances_20),mean(distances_21),mean(distances_22),mean(distances_23),
-          mean(distances_24),mean(distances_25))
 
-frame <- data.frame(count, dist)
-frame$distance_km <- frame$dist/1000
-frame_subset <- data.frame(frame$count, frame$distance_km)
-names(frame_subset)[names(frame_subset) == 'frame.count'] <- 'Number of Couriers'
-names(frame_subset)[names(frame_subset) == 'frame.distance_km'] <- 'Average Straightline Distance Travelled'
-plot(frame_subset)
+
