@@ -58,8 +58,20 @@ dbClearResult(jobs_data)
 # Done with SP....
 require(rgdal)
 require(sp)
+# require(sf)
+
 
 # convert collection coords
+
+# Use sf instead? 
+# unreasonably conplex because sf builds the lat and long column into a list that then 
+# needs to be disaggregated
+# data_1 <- st_as_sf(data, coords = c('COLLECTION_LONGITUDE','COLLECTION_LATITUDE'), crs = 4326)
+# data_1 <- st_transform(data_1, crs = 27700)
+# data_1 <- as.data.frame(data_1)
+
+
+
 coordinates(data) <- c('COLLECTION_LONGITUDE', 'COLLECTION_LATITUDE')
 #set current CRS
 proj4string(data) <- CRS("+init=epsg:4326")

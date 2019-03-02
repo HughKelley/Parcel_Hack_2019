@@ -19,19 +19,13 @@ cluster_distance <- function(sf) {
   clusters <- unique(sf$cluster_id)
   distance <- rep(NA, length(clusters))     # create list for distances
   
-  print("for loop 1")
-  
   for(i in 1:length(clusters)) {
     
-    print(i)
-    print(sf$cluster_id)
     points <- filter(sf,cluster_id==clusters[i])    # throws error when it tries to coerce geometry column to a double
-    # points <- sf[sf$cluster_id == clusters[1]]    # when using current subset of data from Arthur
-    print('a')
+    
     origin_points <- filter(points,type=="origin")
-    print('b')
     destination_points <- filter(points,type=="destination")
-    print('c')
+    
     distance[i] <- estimate_distance(origin_points,destination_points)
   }
   
